@@ -20,9 +20,32 @@ See [SKILL.md](SKILL.md) for the full instruction set the agent follows.
 c-crash-analyzer/
 ├── SKILL.md            # Main instructions the agent loads on trigger
 ├── REFERENCE.md         # Crash pattern catalog (null deref, UAF, OOB, stack overflow, dangling ptr, double free)
-└── scripts/
-    └── symbolize.sh     # addr2line/gdb wrapper: resolves addresses -> file:line
+├── scripts/
+│   └── symbolize.sh     # addr2line/gdb wrapper: resolves addresses -> file:line
+└── demo/
+    ├── crash_demo.c      # Minimal null-deref reproduction
+    ├── crashs.log        # Real coredumpctl report from running it
+    └── README.md         # How to reproduce + expected analysis
 ```
+
+---
+
+## Demo
+
+[`demo/`](demo) has a self-contained example: a linked-list lookup that
+returns `NULL` on a miss, and a caller that dereferences it without
+checking. Build and crash it yourself:
+
+```bash
+cd demo
+gcc -g -O0 -o crash_demo crash_demo.c
+./crash_demo
+```
+
+Or skip straight to the payoff — paste [`demo/crashs.log`](demo/crashs.log)
+(a real `coredumpctl` report from this crash) into a Claude Code session
+with this skill installed and watch it walk from stack trace to root cause
+to fix. See [`demo/README.md`](demo/README.md) for the expected output.
 
 ---
 
