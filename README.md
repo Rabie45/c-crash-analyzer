@@ -74,6 +74,3 @@ This gets you equivalent *instructions and knowledge*, but not the automatic tri
 - Binary built with debug symbols (`-g`, ideally `-O0`) for anything beyond ASAN (which is already symbolized)
 - Source tree access to read the actual crash-site code
 
-## License
-
-Add a license of your choice before publishing.
