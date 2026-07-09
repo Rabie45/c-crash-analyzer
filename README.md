@@ -75,19 +75,37 @@ No further configuration needed — Claude Code will trigger it automatically wh
 
 ---
 
-## Use with ChatGPT / GPT
+## Install for OpenAI Codex (CLI)
 
-ChatGPT doesn't have Claude Code's skill-loading mechanism (auto-triggered, progressively-disclosed instruction files with tool access), so there's no drop-in equivalent — but you can adapt the same instructions as a **Custom GPT**:
+Codex CLI is a shell-native coding agent, like Claude Code, so `scripts/symbolize.sh` runs as-is — no sandbox workaround needed. Codex has two extension points that map onto this skill:
 
-1. Go to **ChatGPT → Explore GPTs → Create**.
-2. In **Instructions**, paste the contents of [`SKILL.md`](SKILL.md) (it's plain Markdown instructions, no Claude-specific syntax).
-3. Under **Knowledge**, upload [`REFERENCE.md`](REFERENCE.md) so the GPT can retrieve the pattern catalog.
-4. `scripts/symbolize.sh` won't run automatically — a stock GPT has no shell access. Two options:
-   - Enable **Code Interpreter** in the GPT's capabilities and upload `symbolize.sh`; instruct the GPT (in the Instructions box) to use Code Interpreter's shell to run it against an uploaded binary.
-   - Or drop the script and instead tell the GPT to walk you through running `addr2line`/`gdb` yourself and pasting the output back in — this is the more reliable fallback since Code Interpreter's sandbox may not have `addr2line`/`gdb` preinstalled or your binary's exact architecture support.
-5. Save, and use it by pasting/uploading your crash log in a chat with that GPT.
+**Option A — custom slash-command prompt (closest equivalent to a Claude Code skill):**
 
-This gets you equivalent *instructions and knowledge*, but not the automatic trigger-on-paste behavior or native shell execution Claude Code gives you out of the box.
+Codex CLI loads any Markdown file in `~/.codex/prompts/` as a `/name` slash command, with the file's body as the prompt.
+
+```bash
+mkdir -p ~/.codex/prompts
+cp SKILL.md ~/.codex/prompts/c-crash-analyzer.md
+cp -r REFERENCE.md scripts ~/.codex/skills-data/c-crash-analyzer/   # keep linked files alongside, referenced by relative/absolute path in the prompt
+chmod +x ~/.codex/skills-data/c-crash-analyzer/scripts/symbolize.sh
+```
+
+Codex prompts don't do progressive disclosure the way Claude Code skills do (there's no separate "load on trigger" step — the whole prompt file is the command), so edit the copied `c-crash-analyzer.md` to point at the absolute path of `REFERENCE.md` and `scripts/symbolize.sh` you copied above, instead of the relative links used in this repo.
+
+Invoke it inside a Codex CLI session with:
+```
+/c-crash-analyzer path/to/crashlog.txt
+```
+
+**Option B — project-wide instructions via `AGENTS.md`:**
+
+Codex automatically reads `AGENTS.md` at your repo root (and `~/.codex/AGENTS.md` globally) as standing instructions for every session in that project — no explicit invocation needed. Append a pointer so Codex knows to apply this skill whenever it sees a crash log:
+
+```bash
+cat SKILL.md >> AGENTS.md   # or reference it: "See c-crash-analyzer/SKILL.md for crash log analysis steps"
+```
+
+Use Option A if you want an explicit, opt-in command; use Option B if you want Codex to apply this automatically anytime it's working in a repo with crash logs.
 
 ---
 
